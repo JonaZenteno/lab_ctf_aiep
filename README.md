@@ -327,4 +327,3 @@ IA, glosario y preguntas de autoevaluación), ver el
 ## Créditos
 
 Laboratorio y material preparados por **Jonathan Zenteno G.** para AIEP.
-Identidad visual: logo AIEP + firma HubInnova.
