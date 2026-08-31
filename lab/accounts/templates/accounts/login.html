@@ -1,0 +1,76 @@
+{% extends "accounts/base.html" %}
+
+{% block content %}
+  <div class="brief">
+    <strong>Reto 1 y 2:</strong> este formulario consulta la base de datos con
+    una construcción de SQL insegura. El objetivo del <strong>Reto 1</strong> es
+    iniciar sesión como <strong>admin</strong> sin conocer su contraseña real.
+    El <strong>Reto 2</strong> (más difícil) es extraer el <em>hash</em> de esa
+    contraseña. Cuando logres cualquiera de los dos, vas a ver la flag acá mismo.
+  </div>
+
+  <div class="card">
+    <h2>Ingresar</h2>
+    <p class="sub">Acceso a la intranet corporativa (ficticia)</p>
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <label for="id_username">Usuario</label>
+      <input type="text" id="id_username" name="username" autocomplete="off" autofocus>
+      <label for="id_password">Contraseña</label>
+      <input type="password" id="id_password" name="password" autocomplete="off">
+      <button type="submit">Ingresar</button>
+    </form>
+
+    {% if result %}
+    <div class="result {{ result.type }}">
+      {% if result.type == 'flag' %}
+        🚩 <strong>¡Lo lograste!</strong> Entraste como <code>{{ result.username }}</code>.
+        <div class="flagbox">{{ result.flag }}</div>
+      {% elif result.type == 'success' %}
+        ✅ Bienvenido, <strong>{{ result.username }}</strong>. Sesión iniciada correctamente.
+      {% elif result.type == 'invalid' %}
+        ⛔ Credenciales inválidas.
+      {% elif result.type == 'sql_error' %}
+        ⚠️ Error de base de datos: sintaxis SQL inválida cerca del carácter que enviaste.
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="hints">
+      <span class="summary-label">Pistas</span>
+
+      <details class="hint">
+        <summary>Pista 1 — Reto 1 (fácil)</summary>
+        <p>¿Qué pasa si el texto que escribes se inserta directo dentro de la
+        consulta SQL, entre comillas? Prueba a romper esa estructura con un
+        carácter especial.</p>
+      </details>
+      <details class="hint">
+        <summary>Pista 2 — Reto 1</summary>
+        <p>En SQL, todo lo que sigue a <code>--</code> en la misma línea se
+        ignora (es un comentario). ¿Cómo usarías eso para anular la
+        comprobación de la contraseña?</p>
+      </details>
+      <details class="hint">
+        <summary>Ver payload — Reto 1</summary>
+        <p>Usuario: <code>admin' -- </code> (con espacio al final) — Contraseña: cualquier cosa.</p>
+      </details>
+
+      <details class="hint">
+        <summary>Pista 1 — Reto 2 (medio)</summary>
+        <p>SQL permite combinar el resultado de dos <code>SELECT</code>
+        distintos en una sola respuesta.</p>
+      </details>
+      <details class="hint">
+        <summary>Pista 2 — Reto 2</summary>
+        <p>Se hace con <code>UNION</code>, y exige que ambas consultas
+        devuelvan el mismo número de columnas. La consulta original de este
+        formulario pide 2 (<code>id</code>, <code>username</code>).</p>
+      </details>
+      <details class="hint">
+        <summary>Ver payload — Reto 2</summary>
+        <p>Usuario: <code>' UNION SELECT id, password FROM auth_user -- </code> — Contraseña: cualquier cosa.</p>
+      </details>
+    </div>
+  </div>
+{% endblock %}

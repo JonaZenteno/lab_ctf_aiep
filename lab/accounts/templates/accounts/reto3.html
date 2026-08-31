@@ -1,0 +1,81 @@
+{% extends "accounts/base.html" %}
+
+{% block content %}
+  <div class="brief">
+    <strong>Reto 3:</strong> este endpoint (<code>/transferir/</code>) mueve
+    fondos y no está enlazado desde ningún botón visible del sitio — pero
+    sigue respondiendo a cualquier petición <code>POST</code> que le llegue,
+    sin verificar de dónde vino ni pedir un token CSRF. Ejecútala igual y
+    mira qué pasa.
+  </div>
+
+  <div class="card">
+    <h2>Transferir fondos</h2>
+    <p class="sub">Simulación — no hay dinero real, es solo para demostrar el problema.</p>
+
+    <label for="monto">Monto</label>
+    <input type="text" id="monto" value="999999">
+    <label for="destino">Cuenta destino</label>
+    <input type="text" id="destino" value="cuenta-del-atacante">
+    <button id="btn-transferir" type="button">Ejecutar transferencia</button>
+
+    <div id="resultado" class="result" style="display:none;"></div>
+
+    <div class="hints">
+      <span class="summary-label">Pistas</span>
+
+      <details class="hint">
+        <summary>Pista 1</summary>
+        <p>El botón de arriba ya hace la petición por ti — pero fíjate que
+        <strong>en ningún momento se te pidió iniciar sesión ni se envió
+        ningún token</strong>. Eso es justamente lo que estamos probando.</p>
+      </details>
+      <details class="hint">
+        <summary>Pista 2</summary>
+        <p>Puedes hacer la misma petición sin usar el botón, directo desde
+        las herramientas de desarrollador de tu navegador (F12 → pestaña
+        Console). Cualquier página — incluso una que no tenga nada que ver
+        con este sitio — podría ejecutar este mismo código contra tu sesión.</p>
+      </details>
+      <details class="hint">
+        <summary>Ver código — lo que hace el botón</summary>
+        <pre>fetch("/transferir/", {
+  method: "POST",
+  headers: {"Content-Type": "application/x-www-form-urlencoded"},
+  body: "monto=999999&destino=cuenta-del-atacante"
+}).then(r => r.json()).then(console.log)</pre>
+        <p>Sin token CSRF, sin cabeceras especiales. Si esto fuera un banco
+        real y tú estuvieras con la sesión abierta, cualquier página abierta
+        en otra pestaña podría ejecutar este mismo código en tu nombre.</p>
+      </details>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('btn-transferir').addEventListener('click', async () => {
+      const monto = document.getElementById('monto').value;
+      const destino = document.getElementById('destino').value;
+      const resDiv = document.getElementById('resultado');
+      resDiv.style.display = 'block';
+      try {
+        const res = await fetch("{% url 'transferir_fondos' %}", {
+          method: 'POST',
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          body: new URLSearchParams({monto: monto, destino: destino}).toString(),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          resDiv.className = 'result flag';
+          resDiv.innerHTML = '🚩 <strong>¡Funcionó sin token CSRF!</strong><br>' + data.mensaje + '<div class="flagbox"></div>';
+          resDiv.querySelector('.flagbox').textContent = data.flag;
+        } else {
+          resDiv.className = 'result invalid';
+          resDiv.textContent = '⛔ El endpoint rechazó la petición (probablemente estás en modo corregido).';
+        }
+      } catch (e) {
+        resDiv.className = 'result sql_error';
+        resDiv.textContent = 'Error de red al llamar al endpoint.';
+      }
+    });
+  </script>
+{% endblock %}

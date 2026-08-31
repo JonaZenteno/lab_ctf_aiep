@@ -1,0 +1,76 @@
+{% extends "accounts/base.html" %}
+
+{% block content %}
+  <div class="brief">
+    <strong>Reto 4:</strong> un buscador de empleados, no un login — la
+    inyección SQL no vive solo ahí. A diferencia de los retos 1 y 2, acá no
+    te decimos cuántas columnas tiene la consulta. Hay un documento
+    confidencial en otra tabla que no debería aparecer en estos resultados.
+  </div>
+
+  <div class="card">
+    <h2>Buscador de empleados</h2>
+    <p class="sub">Busca por nombre</p>
+    <form method="get" action="{% url 'buscar' %}">
+      <label for="id_q">Nombre</label>
+      <input type="text" id="id_q" name="q" value="{{ q }}" autocomplete="off" autofocus>
+      <button type="submit">Buscar</button>
+    </form>
+
+    {% if error %}
+      <div class="result error">⚠️ {{ error }}</div>
+    {% endif %}
+
+    {% if flag %}
+      <div class="result flag">
+        🚩 <strong>¡Encontraste el documento confidencial!</strong>
+        <div class="flagbox">{{ flag }}</div>
+      </div>
+    {% endif %}
+
+    {% if rows is not None %}
+      {% if rows %}
+        <table class="results">
+          <thead><tr><th>Resultado 1</th><th>Resultado 2</th></tr></thead>
+          <tbody>
+            {% for row in rows %}
+              <tr><td>{{ row.0 }}</td><td>{{ row.1 }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="sub">Sin resultados para "{{ q }}".</p>
+      {% endif %}
+    {% endif %}
+
+    <div class="hints">
+      <span class="summary-label">Pistas</span>
+
+      <details class="hint">
+        <summary>Pista 1</summary>
+        <p>Primero busca algo normal, como <code>Ana</code>, para ver cómo
+        se ven los resultados cuando todo funciona bien.</p>
+      </details>
+      <details class="hint">
+        <summary>Pista 2</summary>
+        <p>¿Qué pasa si buscas algo que rompa la sintaxis SQL, como una
+        comilla simple (<code>'</code>)? Confirma que hay inyección antes de
+        seguir.</p>
+      </details>
+      <details class="hint">
+        <summary>Pista 3 (la clave de este reto)</summary>
+        <p>Acá no sabes cuántas columnas devuelve la consulta original.
+        Puedes descubrirlo probando <code>algo' ORDER BY 1-- </code>,
+        <code>algo' ORDER BY 2-- </code>, <code>algo' ORDER BY 3-- </code>...
+        hasta que un número te devuelva error — el número anterior es la
+        cantidad real de columnas.</p>
+      </details>
+      <details class="hint">
+        <summary>Ver payload completo</summary>
+        <p>Una vez que confirmes el número de columnas (spoiler: son 2),
+        arma un <code>UNION</code> hacia la tabla que guarda el documento:</p>
+        <pre>algo' UNION SELECT titulo, contenido FROM documentos_confidenciales -- </pre>
+      </details>
+    </div>
+  </div>
+{% endblock %}

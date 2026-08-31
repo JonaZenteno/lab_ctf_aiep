@@ -1,0 +1,54 @@
+{% extends "accounts/base.html" %}
+
+{% block header_extra %}{% endblock %}
+
+{% block wrap_extra_class %} wide{% endblock %}
+
+{% block content %}
+  <div class="brief">
+    <strong>5 retos, un mismo tema: inyección SQL</strong> (y su prima
+    cercana, la falta de protección CSRF). Todos atacan la misma app
+    ficticia, desde distintos puntos. Resuélvelos en el orden que quieras —
+    cada uno tiene sus propias pistas si te atascas.
+  </div>
+
+  <div class="challenges">
+    <a class="challenge-card" href="{% url 'login' %}">
+      <div class="top"><span class="diff facil">Fácil</span><h3>Reto 1 — Bypass de autenticación</h3></div>
+      <p>Entra como <code>admin</code> al login sin conocer su contraseña.</p>
+    </a>
+
+    <a class="challenge-card" href="{% url 'login' %}">
+      <div class="top"><span class="diff medio">Medio</span><h3>Reto 2 — Extracción con UNION</h3></div>
+      <p>Mismo formulario que el Reto 1 — extrae el <em>hash</em> de la contraseña de admin.</p>
+    </a>
+
+    <a class="challenge-card" href="{% url 'reto3' %}">
+      <div class="top"><span class="diff medio">Medio</span><h3>Reto 3 — Transferencia sin protección</h3></div>
+      <p>Un endpoint que mueve fondos sin validar de dónde vino la petición.</p>
+    </a>
+
+    <a class="challenge-card" href="{% url 'buscar' %}">
+      <div class="top"><span class="diff medio">Medio</span><h3>Reto 4 — Buscador vulnerable</h3></div>
+      <p>La inyección no vive solo en logins. Encuentra un documento que no debería ser público.</p>
+    </a>
+
+    <a class="challenge-card" href="{% url 'verificar' %}">
+      <div class="top"><span class="diff avanzado">Avanzado</span><h3>Reto 5 — Inyección a ciegas</h3></div>
+      <p>Sin errores, sin datos visibles. Solo "disponible" / "no disponible". ¿Puedes extraer algo igual?</p>
+    </a>
+  </div>
+
+  <div class="flag-check-cta">
+    <a class="btn secondary" href="{% url 'comprobar_flag' %}">✅ ¿Ya tienes una flag? Compruébala acá</a>
+  </div>
+
+  <div class="brief resources">
+    <strong>¿Quieres seguir practicando después de esto?</strong>
+    <ul>
+      <li><a href="https://portswigger.net/web-security" target="_blank" rel="noopener">PortSwigger Web Security Academy</a> — labs gratuitos, el estándar de la industria para practicar explotación web paso a paso.</li>
+      <li><a href="https://picoctf.org" target="_blank" rel="noopener">picoCTF</a> — CTF educativo gratuito para seguir compitiendo por tu cuenta.</li>
+      <li><a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener">OWASP Top 10</a> — el mapa completo de vulnerabilidades web más allá de SQLi/CSRF.</li>
+    </ul>
+  </div>
+{% endblock %}

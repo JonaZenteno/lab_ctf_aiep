@@ -1,0 +1,31 @@
+{% extends "accounts/base.html" %}
+
+{% block content %}
+  <div class="brief">
+    <strong>Comprobador de flags:</strong> pega acá la flag que obtuviste en
+    cualquiera de los 5 retos y te confirmamos si es correcta. No queda
+    ningún registro — es solo para que sepas si vas por buen camino.
+  </div>
+
+  <div class="card">
+    <h2>Comprobar flag</h2>
+    <p class="sub">Formato <code>AIEP{"{"}...{"}"}</code></p>
+    <form method="get" action="{% url 'comprobar_flag' %}">
+      <label for="id_flag">Flag</label>
+      <input type="text" id="id_flag" name="flag" value="{{ flag }}" autocomplete="off" autofocus>
+      <button type="submit">Comprobar</button>
+    </form>
+
+    {% if checked %}
+      {% if reto %}
+        <div class="result flag">✅ <strong>¡Correcta!</strong> Esa es la flag del Reto {{ reto }}.</div>
+      {% else %}
+        <div class="result invalid">⛔ Esa flag no corresponde a ningún reto. Revisa que la copiaste completa.</div>
+      {% endif %}
+    {% endif %}
+
+    <p class="sub" style="margin-top:1.1rem;">
+      <a class="btn secondary" href="{% url 'hub' %}">← Volver a todos los retos</a>
+    </p>
+  </div>
+{% endblock %}
